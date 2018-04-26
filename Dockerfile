@@ -5,4 +5,5 @@ RUN unzip h2.zip -d /opt/
 RUN rm h2.zip
 RUN mkdir -p /opt/h2-data
 ADD run.sh /opt/h2/bin
+RUN apk del --no-cache curl unzip
 CMD ["sh", "/opt/h2/bin/run.sh"]
