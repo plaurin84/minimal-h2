@@ -43,8 +43,8 @@ spec:
     - name: minimal-h2
       image: plaurin/minimal-h2
       args:
-        - web
-        - webAllowOthers
+        - -web
+        - -webAllowOthers
         - -tcp
         - -tcpAllowOthers
       ports:
