@@ -38,7 +38,7 @@ docker run -p 9092:9092 h2
 
 You can use this docker image in kubernetes. Simply provide a custom run.sh through a configmap or secret, as you need. -- Never use a plain configmap if you provide any kind of sensitive data or password.
 
-Example with shared tcp connection:
+Example with shared tcp connection, custom password and additional shell applications:
 
 * kubernetes configmap
 ```
@@ -49,14 +49,18 @@ metadata:
 data:
     run.sh: |
       #!/bin/sh
+      H2="/opt/h2/bin/h2-1.4.196.jar"
+
       #--------------------#
       # h2 database server #
       #--------------------#
-      java -jar /opt/h2/bin/h2-1.4.196.jar -baseDir /opt/h2-data -tcp -tcpAllowOthers &
+      java -jar $H2 -baseDir /opt/h2-data -tcp -tcpAllowOthers &
 
       #------------#
       # Init stage #
       #------------#
+      java -cp $H2 org.h2.tools.Shell -url "jdbc:h2:tcp://localhost/test" -user sa -sql "ALTER USER sa SET PASSWORD 'dumbpass';"
+      apk add --no-cache bash curl unzip
 
       #---------------#
       # Shell Runtime #
