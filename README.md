@@ -1,60 +1,106 @@
 # minimal-h2
 
-Minimalistic h2 database server in a container  
-Based on openjdk:8-jre-alpine  
-Automated build on docker hub
+Minimalistic and versatile ways to run h2 database server in a docker container.  
+Based on openjdk:8-jre-alpine , automated build on docker hub.  
+Assuming you understand how h2 and docker works!
 
 Defaults:
-* Server installed in /opt/h2
+* h2 version 1.4.196 (2017-06-10)
+* h2 database server installed in /opt/h2
+* Run script (run.sh) installed in /opt/h2-run
 * Data stored in /opt/h2-data
+* WORKDIR is /opt
 
-## Docker
+## Build from source
 
-Run your h2 server and args using docker's native arguments.
+Example how to configure and run your h2 database using shared tcp connection and custom password.  
+Modify run.sh accordingly:  
 
-Examples:
-
-* Using default h2 behaviour (Embedded mode):
+* **h2 database server** - Provide additional tcp arguments in run.sh:  
 ```
-docker run h2
-```
-
-* Using h2 in Server mode with shared tcp connections only:
-```
-docker run -p 9092:9092 h2 -tcp -tcpAllowOthers
+java -jar /opt/h2/bin/h2-1.4.196.jar -baseDir /opt/h2-data -tcp -tcpAllowOthers &
 ```
 
-* Using tcp connection, web client and external volume for h2 data persistence:
+* **Init Stage** - Customise your database in run.sh (here, we change the default users's password):
 ```
-docker run -p 8082:8082 -p 9092:9092 -v <localdir>:/opt/h2-data h2 -web -webAllowOthers -tcp -tcpAllowOthers
+java -cp /opt/h2/bin/h2-1.4.196.jar org.h2.tools.Shell -url "jdbc:h2:tcp://localhost/test" -user sa -password sa -sql "ALTER USER sa SET PASSWORD 'notdumbpassword';"
+```
+
+* **Shell Runtime** - This keeps the container alive and provides graceful shutdown. Don't touch this.
+
+Build and run your docker container:
+```
+docker build -t h2 .
+docker run -p 9092:9092 h2
 ```
 
 ## Kubernetes
 
-You can use this docker image as a quick drop-in in kubernetes. Simply provide the relevant args, ports and volumes as you need.
+You can use this docker image in kubernetes. Simply provide a custom run.sh through a configmap or secret, as you need. -- Never use a plain configmap if you provide any kind of sensitive data or password.
 
-Example:
+Example with shared tcp connection:
 
-* Using tcp connection, web client and external volume for h2 data persistence:
+* kubernetes configmap
 ```
-[...]
+ ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: h2-config
+data:
+    run.sh: |
+      #!/bin/sh
+      #--------------------#
+      # h2 database server #
+      #--------------------#
+      java -jar /opt/h2/bin/h2-1.4.196.jar -baseDir /opt/h2-data -tcp -tcpAllowOthers &
+
+      #------------#
+      # Init stage #
+      #------------#
+
+      #---------------#
+      # Shell Runtime #
+      #---------------#
+      trap 'pkill java; exit 0' SIGTERM
+      while true; do :; done
+```
+
+* kubernetes pod
+```
+ ---
+apiVersion: v1
+kind: Pod
+metadata:
+    name: h2
 spec:
-  containers:
-    - name: minimal-h2
-      image: plaurin/minimal-h2
-      args:
-        - web
-        - webAllowOthers
-        - -tcp
-        - -tcpAllowOthers
-      ports:
-        - name: h2-web
-          containerPort: 8082
-        - name: h2-tcp
-          containerPort: 9092
-      volumeMounts:
-        - name: h2-data
-          mountPath: /opt/h2-data
+    containers:
+      - name: h2
+        image: plaurin/minimal-h2:1.4.196
+        ports:
+          - name: h2-tcp
+            containerPort: 9092
+        volumeMounts:
+          - name: h2-config
+            mountPath: /opt/h2-run
     volumes:
-[...]
+      - name: h2-config
+        configMap:
+          name: h2-config
+```
+* kubernetes service (to expose h2's tcp port)
+```
+ ---
+apiVersion: v1
+kind: Service
+metadata:
+    name: h2-tcp
+spec:
+    ports:
+      - name: h2-tcp
+        port: 9092
+        targetPort: h2-tcp
+    selector:
+      name: h2
+    type: LoadBalancer
 ```

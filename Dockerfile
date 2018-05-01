@@ -1,8 +1,12 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:8-jre-alpine as builder
 RUN apk add --no-cache curl unzip
 RUN curl http://www.h2database.com/h2-2017-06-10.zip -o h2.zip
-RUN unzip h2.zip -d /opt/
-RUN rm h2.zip
-RUN mkdir -p /opt/h2-data
-RUN apk del --no-cache unzip curl libcurl libssh2
-ENTRYPOINT ["java", "-jar", "/opt/h2/bin/h2-1.4.196.jar", "-baseDir", "/opt/h2-data"]
+RUN unzip h2.zip
+
+FROM openjdk:8-jre-alpine
+WORKDIR /opt
+RUN mkdir h2-data h2-run
+COPY --from=builder h2 h2
+ADD run.sh h2-run
+RUN chmod +x h2-run/run.sh
+CMD ["./h2-run/run.sh"]
