@@ -42,7 +42,6 @@ Example with shared tcp connection:
 
 * kubernetes configmap
 ```
- ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -68,7 +67,6 @@ data:
 
 * kubernetes pod
 ```
- ---
 apiVersion: v1
 kind: Pod
 metadata:
@@ -90,7 +88,6 @@ spec:
 ```
 * kubernetes service (to expose h2's tcp port)
 ```
- ---
 apiVersion: v1
 kind: Service
 metadata:
