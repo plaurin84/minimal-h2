@@ -71,6 +71,8 @@ apiVersion: v1
 kind: Pod
 metadata:
     name: h2
+    labels:
+      env: test
 spec:
     containers:
       - name: h2
@@ -98,6 +100,6 @@ spec:
         port: 9092
         targetPort: h2-tcp
     selector:
-      name: h2
+      env: test
     type: LoadBalancer
 ```
