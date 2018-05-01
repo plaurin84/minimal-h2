@@ -1,7 +1,7 @@
 # minimal-h2
 
 Minimalistic and versatile ways to run h2 database server in a docker container.  
-Based on openjdk:8-jre-alpine , automated build on docker hub.  
+Based on openjdk:8-jre-alpine, automated build on docker hub.  
 Assuming you understand how h2 and docker works!
 
 Defaults:
