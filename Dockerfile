@@ -9,4 +9,4 @@ RUN mkdir h2-data h2-run
 COPY --from=builder h2 h2
 ADD run.sh h2-run
 RUN chmod +x h2-run/run.sh
-CMD ["./h2-run/run.sh"]
+CMD ["sh", "h2-run/run.sh"]
