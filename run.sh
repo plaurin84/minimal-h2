@@ -1,10 +1,9 @@
 #!/bin/sh
-H2="/opt/h2/bin/h2-1.4.196.jar"
 
 #--------------------#
 # h2 database server #
 #--------------------#
-java -jar $H2 -baseDir /opt/h2-data &
+java -jar h2.jar -baseDir /opt/h2-data &
 
 #------------#
 # Init stage #
