@@ -9,6 +9,7 @@ Dockerfile defaults:
 * Run script installed in /opt/h2-run/run.sh
 * Data stored in /opt/h2-data/*
 * WORKDIR is /opt
+* bash and python pre-installed, making the image ansible-ready
 
 ## Build container from source
 
